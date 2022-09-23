@@ -1,6 +1,6 @@
 {
   "extends": "ts-config-single-spa",
-  "files": ["src/my-app-root-config.ts"],
+  "files": ["src/snapify-root-config.ts"],
   "compilerOptions": {
     "declarationDir": "dist"
   },

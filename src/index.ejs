@@ -31,6 +31,7 @@
 
     More information about shared dependencies can be found at https://single-spa.js.org/docs/recommended-setup#sharing-with-import-maps.
   -->
+  <script type="systemjs-importmap" src="https://db8kbjrv5qbv8.cloudfront.net/import-map.json"></script>
   <script type="systemjs-importmap">
     {
       "imports": {
@@ -50,15 +51,10 @@
     {
       "imports": {
         "@single-spa/welcome": "https://unpkg.com/single-spa-welcome/dist/single-spa-welcome.js",
-        "@my-app/root-config": "//localhost:9000/my-app-root-config.js"
-      }
-    }
-  </script>
-  <% } else { %>
-  <script type="systemjs-importmap">
-    {
-      "imports": {
-        "@my-app/root-config": "https://mf-todo.s3.amazonaws.com/my-app-root-config.js"
+        "@snapify/root-config": "//localhost:9000/snapify-root-config.js",
+        "@snapify/shared-modules": "//localhost:8500/snapify-shared-modules.js",
+        "@snapify/mf-login": "//localhost:8501/snapify-mf-login.js",
+        "@snapify/mf-user": "//localhost:8502/snapify-mf-user.js"
       }
     }
   </script>
@@ -85,7 +81,7 @@
     You need to enable JavaScript to run this app.
   </noscript>
   <script>
-    System.import('@my-app/root-config');
+    System.import('@snapify/root-config');
   </script>
   <import-map-overrides-full show-when-local-storage="devtools" dev-libs></import-map-overrides-full>
 </body>

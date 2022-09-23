@@ -44,8 +44,8 @@ mv src/my-app-root-config.ts "src/$project-root-config.ts"
 
 
 echo "🔥🔨 Installing dependencies"
-# yarn install
+yarn install
 echo "🔥⚙️ Installing Git Hooks"
-# yarn husky install
+yarn husky install
 echo "🚀🚀 Project setup complete!"
 echo "✔️💡 Run 'yarn start' to boot up your single-spa root config"

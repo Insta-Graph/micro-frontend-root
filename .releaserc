@@ -2,7 +2,7 @@
   "branches": [
     "master"
   ],
-  "repositoryUrl": "https://github.com/edwardramirez31/micro-frontend-root-layout",
+  "repositoryUrl": "https://github.com/Insta-Graph/micro-frontend-root",
   "plugins": [
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",

@@ -55,4 +55,21 @@ jobs:
       - name: Build
         run: yarn build
       - name: Deploy to S3
-        run: aws s3 sync ./dist s3://my-bucket
+        run: aws s3 sync dist/ s3://${BUCKET_NAME}/${MICRO_FRONTEND_NAME}/${IDENTIFIER}
+        env:
+          BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
+          MICRO_FRONTEND_NAME: ${{ secrets.MICRO_FRONTEND_NAME }}
+          IDENTIFIER: ${{ github.sha }}
+      - name: Upload index file
+        run: aws s3 cp dist/index.html s3://${BUCKET_NAME}
+        env:
+          BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
+      - name: Update import map
+        run: curl -u ${USERNAME}:${PASSWORD} -d '{ "service":"@snapify/'"${MICRO_FRONTEND_NAME}"'","url":"https://'"${CLOUDFRONT_HOST}"'/'"${MICRO_FRONTEND_NAME}"'/'"${IDENTIFIER}"'/'snapify-"${MICRO_FRONTEND_NAME}"'.js" }' -X PATCH https://${IMD_HOST}/services/\?env=prod -H "Accept:application/json" -H "Content-Type:application/json"
+        env:
+          USERNAME: ${{ secrets.IMD_USERNAME }}
+          PASSWORD: ${{ secrets.IMD_PASSWORD }}
+          MICRO_FRONTEND_NAME: ${{ secrets.MICRO_FRONTEND_NAME }}
+          CLOUDFRONT_HOST: ${{ secrets.CLOUDFRONT_HOST }}
+          IMD_HOST: ${{ secrets.IMD_HOST }}
+          IDENTIFIER: ${{ github.sha }}
