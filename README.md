@@ -44,6 +44,14 @@
 
 ## Important notes
 
+- Set `devtools` local storage key at browser console in order to take a look at [import-map-overrides](https://github.com/single-spa/import-map-overrides/blob/main/docs/ui.md) extension. This way, you can point the import map to your micro frontend that is running locally. Extension docs here [here](https://github.com/single-spa/import-map-overrides)
+
+```js
+localStorage.setItem('devtools', true);
+```
+
+- Update `import-map.json` file at CI / CD process so that this root will get the production code correctly by using [import-map-deployer](https://github.com/Insta-Graph/import-map-deployer)
+
 - Maintain consistency for the project name (all micro service and root project should have the same project name)
 
 - It's recommended to setup the micro frontend apps repositories from [this template](https://github.com/edwardramirez31/micro-frontend-template) to be consistent with project naming convention
