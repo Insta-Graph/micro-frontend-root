@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/Insta-Graph/micro-frontend-root/compare/v1.0.1...v1.0.2) (2022-09-24)
+
+
+### Bug Fixes
+
+* set feed route correctly ([5b2a620](https://github.com/Insta-Graph/micro-frontend-root/commit/5b2a6204100dfed59187d1d804b284be059288c9))
+
 ## [1.0.1](https://github.com/Insta-Graph/micro-frontend-root/compare/v1.0.0...v1.0.1) (2022-09-24)
 
 
