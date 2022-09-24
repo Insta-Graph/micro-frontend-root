@@ -18,11 +18,14 @@
   -->
 
   <main>
-    <route path="sign-in">
+    <route path="auth">
       <application name="@snapify/mf-login"></application>
     </route>
     <route path="profile">
       <application name="@snapify/mf-user"></application>
+    </route>
+    <route exact path="/">
+      <application name="@snapify/mf-feed"></application>
     </route>
     <route default>
       <application name="@single-spa/welcome"></application>
