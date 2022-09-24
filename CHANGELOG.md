@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/Insta-Graph/micro-frontend-root/compare/v1.0.0...v1.0.1) (2022-09-24)
+
+
+### Bug Fixes
+
+* remove useless import maps ([f2480db](https://github.com/Insta-Graph/micro-frontend-root/commit/f2480dbf7e2c2b912f77e038b8735fc747af08b1))
+
 # 1.0.0 (2022-09-23)
 
 
