@@ -9,6 +9,10 @@ on:
   pull_request:
     branches: [master]
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   test:
     name: Test project
@@ -44,7 +48,7 @@ jobs:
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          role-to-assume: ${{ secrets.DEPLOYMENT_ROLE }}
+          role-to-assume: ${{ secrets.FRONTEND_DEPLOYMENT_ROLE }}
           role-session-name: DeployFrontendRootSession
           role-duration-seconds: 900
           aws-region: us-east-1
