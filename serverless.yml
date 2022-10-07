@@ -1,0 +1,198 @@
+service: test-frontend
+frameworkVersion: '>=2.35.0'
+
+provider:
+  stage: ${opt:stage, "dev"}
+  name: aws
+
+custom:
+  OIDCProviderArn: ${opt:oidc, ""}
+  GitHubOrg: ${opt:org, ""}
+  RepositoryNamePrefix: ${opt:repo, ""}
+
+resources:
+  Conditions:
+    CreateOIDCProvider: !Equals
+      - ${self:custom.OIDCProviderArn}
+      - ''
+
+  Resources:
+    OriginAccessControl:
+      Type: AWS::CloudFront::OriginAccessControl
+      Properties:
+        OriginAccessControlConfig:
+          Description: Origin access control for ${self:service}
+          Name: ${self:service}-${opt:stage, self:provider.stage, "dev"}-oac
+          OriginAccessControlOriginType: s3
+          SigningBehavior: always
+          SigningProtocol: sigv4
+
+    StaticResourcesBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:service}-${opt:stage, self:provider.stage, "dev"}
+        BucketEncryption:
+          ServerSideEncryptionConfiguration:
+            - ServerSideEncryptionByDefault:
+                SSEAlgorithm: AES256
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+        CorsConfiguration:
+          CorsRules:
+            - AllowedHeaders:
+                - 'Authorization'
+              AllowedMethods:
+                - GET
+                - HEAD
+              AllowedOrigins:
+                - 'http://localhost:9000'
+                - 'https://xxxxxxx.cloudfront.net/'
+                # - !Join
+                #   - ''
+                #   - - 'https://'
+                #     - !GetAtt Distribution.DomainName
+              ExposedHeaders:
+                - 'Access-Control-Allow-Origin'
+              Id: ${self:service}-${opt:stage, self:provider.stage, "dev"}-CORSRule
+              MaxAge: 3600
+        Tags:
+          - Key: project
+            Value: ${self:service}
+          - Key: environment
+            Value: ${opt:stage, self:provider.stage, "dev"}
+
+    StaticResourcesBucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      DependsOn:
+        - Distribution
+      Properties:
+        Bucket: !Ref StaticResourcesBucket
+        PolicyDocument:
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: cloudfront.amazonaws.com
+              Action: s3:GetObject
+              Resource: !Sub ${StaticResourcesBucket.Arn}/*
+              Condition:
+                StringEquals:
+                  AWS:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${Distribution}
+
+    DistributionCachePolicy:
+      Type: AWS::CloudFront::CachePolicy
+      Properties:
+        CachePolicyConfig:
+          Comment: Cache policy that adds CORS headers for local development
+          DefaultTTL: 86400
+          MaxTTL: 31536000
+          MinTTL: 1
+          Name: ${self:service}-${opt:stage, self:provider.stage, "dev"}-cache-policy
+          ParametersInCacheKeyAndForwardedToOrigin:
+            CookiesConfig:
+              CookieBehavior: none
+            EnableAcceptEncodingBrotli: true
+            EnableAcceptEncodingGzip: true
+            HeadersConfig:
+              HeaderBehavior: whitelist
+              Headers:
+                - Origin
+                - Access-Control-Request-Headers
+                - Access-Control-Request-Method
+            QueryStringsConfig:
+              QueryStringBehavior: none
+
+    Distribution:
+      Type: AWS::CloudFront::Distribution
+      Properties:
+        DistributionConfig:
+          Origins:
+            - DomainName: !GetAtt StaticResourcesBucket.DomainName
+              Id: S3Origin
+              S3OriginConfig:
+                OriginAccessIdentity: ''
+              OriginAccessControlId: !GetAtt OriginAccessControl.Id
+          Enabled: true
+          DefaultRootObject: index.html
+          DefaultCacheBehavior:
+            AllowedMethods:
+              - GET
+              - HEAD
+            TargetOriginId: S3Origin
+            ForwardedValues:
+              QueryString: false
+              Cookies:
+                Forward: none
+            ViewerProtocolPolicy: redirect-to-https
+            CachePolicyId: !Ref DistributionCachePolicy
+            OriginRequestPolicyId: 88a5eaf4-2fd4-4709-b370-b4c650ea3fcf
+          PriceClass: PriceClass_All
+          CustomErrorResponses:
+            - ErrorCachingMinTTL: 10
+              ErrorCode: 403
+              ResponseCode: 200
+              ResponsePagePath: /index.html
+            - ErrorCachingMinTTL: 10
+              ErrorCode: 404
+              ResponseCode: 200
+              ResponsePagePath: /index.html
+        Tags:
+          - Key: project
+            Value: ${self:service}
+          - Key: environment
+            Value: ${opt:stage, self:provider.stage, "dev"}
+
+    Role:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${self:service}-${opt:stage, self:provider.stage, "dev"}-ci
+        Description: Role that allows GitHub to assume roles and deploy new code to AWS Lambda for ${self:service}-${opt:stage, self:provider.stage, "dev"}-ci
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action: sts:AssumeRoleWithWebIdentity
+              Principal:
+                Federated: !If
+                  - CreateOIDCProvider
+                  - !Ref GithubOidc
+                  - ${self:custom.OIDCProviderArn}
+              Condition:
+                StringLike:
+                  token.actions.githubusercontent.com:sub: repo:${self:custom.GitHubOrg}/${self:custom.RepositoryNamePrefix}*:*
+                ForAllValues:StringEquals:
+                  token.actions.githubusercontent.com:iss: 'https://token.actions.githubusercontent.com'
+                  token.actions.githubusercontent.com:sub: 'sts.amazonaws.com'
+        Tags:
+          - Key: project
+            Value: ${self:service}
+          - Key: environment
+            Value: ${opt:stage, self:provider.stage, "dev"}
+
+    StaticResourcesBucketDeployPolicy:
+      Type: AWS::IAM::Policy
+      Properties:
+        Roles:
+          - !Ref Role
+        PolicyName: ${self:service}-${opt:stage, self:provider.stage, "dev"}-bucket-access
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:ListBucket
+                - s3:PutObject
+              Resource: !Sub ${StaticResourcesBucket.Arn}/*
+
+    GithubOidc:
+      Type: AWS::IAM::OIDCProvider
+      Condition: CreateOIDCProvider
+      Properties:
+        Url: https://token.actions.githubusercontent.com
+        ClientIdList:
+          - sts.amazonaws.com
+        ThumbprintList:
+          - 6938fd4d98bab03faadb97b34396831e3780aea1
