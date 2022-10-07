@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/Insta-Graph/micro-frontend-root/compare/v1.0.2...v1.1.0) (2022-10-07)
+
+
+### Features
+
+* use serverless to deploy micro frontend infrastructure as code ([fc34cd8](https://github.com/Insta-Graph/micro-frontend-root/commit/fc34cd8e49c126e2ac76410220a932d6edd53bc9))
+
 ## [1.0.2](https://github.com/Insta-Graph/micro-frontend-root/compare/v1.0.1...v1.0.2) (2022-09-24)
 
 
