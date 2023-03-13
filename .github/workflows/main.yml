@@ -46,7 +46,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: configure aws credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: ${{ secrets.FRONTEND_DEPLOYMENT_ROLE }}
           role-session-name: DeployFrontendRootSession
